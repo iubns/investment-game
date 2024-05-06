@@ -2,17 +2,33 @@
 
 import { login } from "@/api/auth"
 import dayjs from "dayjs"
-import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { ChangeEvent, useState } from "react"
 
 export default function Login() {
   const START_YEAR = 1970
   const THIS_YEAR = dayjs().year()
   const AGE_GAP = 18
+
+  const { push } = useRouter()
+
   const [userName, setUserName] = useState("")
   const [yearOfBirth, setYearOfBirth] = useState(START_YEAR)
 
-  function onClickLogin() {
-    login(userName, yearOfBirth)
+  async function onClickLogin() {
+    const { status, data } = await login(userName, yearOfBirth)
+    if (status === 200) {
+      localStorage.setItem("jwtToken", data.jwtToken)
+      push("/")
+    }
+  }
+
+  function onChangeName(e: ChangeEvent<HTMLInputElement>) {
+    setUserName(e.target.value)
+  }
+
+  function onYearOfBirth(e: ChangeEvent<HTMLSelectElement>) {
+    setYearOfBirth(Number.parseInt(e.target.value))
   }
 
   return (
@@ -28,16 +44,18 @@ export default function Login() {
           id="userName"
           type="text"
           placeholder="이름"
+          onChange={onChangeName}
         />
       </div>
       <div className="flex gap-6 items-center">
         <div className="w-[100px]">출생년도</div>
         <select
+          id="grid-state"
+          onChange={onYearOfBirth}
           className="block appearance-none 
           w-full bg-white border border-gray-200 
           text-gray-700 py-3 px-4 pr-8 rounded leading-tight 
           focus:outline-none focus:bg-gray-200 focus:border-gray-500"
-          id="grid-state"
         >
           {new Array(THIS_YEAR - AGE_GAP - START_YEAR)
             .fill(0)
